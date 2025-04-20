@@ -4,7 +4,7 @@
 
 1. Place your website files in the `Website/` directory
    - Make sure your main page is named `index.html`
-      <span style="color:red">If your main page has a different name, please contact our support team</span>
+   - <font color="red">⚠️ If your main page has a different name, please contact our support team</font>
    - Include all your website assets (CSS, JavaScript, images, etc.)
    
 
