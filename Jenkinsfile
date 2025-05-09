@@ -29,8 +29,8 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f k8s/deployment.yaml --namespace=kre1-cluster'
-                sh 'kubectl rollout status deployment/website --namespace=kre1-cluster'
+                sh 'kubectl apply -f k8s/deployment.yaml --namespace=kind-cluster'
+                sh 'kubectl rollout status deployment/website --namespace=kind-cluster'
             }
         }
     }
