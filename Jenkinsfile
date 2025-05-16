@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // your Jenkins credential ID
-        IMAGE_NAME = 'kre1/website'
+        IMAGE_NAME = 'kre1/website2'
         IMAGE_TAG = 'latest'
     }
 
