@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: website
-          image: kre1/website2:latest
+          image: kre1/website3:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
