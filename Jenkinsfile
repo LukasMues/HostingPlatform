@@ -31,8 +31,8 @@ pipeline {
             steps {
                 sh '''
                     sed -i "s|image: kre1/website:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|" k8s/deployment.yaml
-                    kubectl apply -f k8s/deployment.yaml --namespace=worker1
-                    kubectl rollout status deployment/website --namespace=worker1
+                    kubectl apply -f k8s/deployment.yaml --namespace=client1
+                    kubectl rollout status deployment/website --namespace=client1
                 '''
             }
         }
