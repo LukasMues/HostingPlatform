@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // your Jenkins credential ID
         IMAGE_NAME = 'kre1/website7'
-        IMAGE_TAG = 'latest'
+        IMAGE_TAG = "${new Date().format('yyyyMMdd-HHmm')}"
     }
 
     stages {
@@ -27,10 +27,13 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Update Kubernetes Deployment') {
             steps {
-                sh 'kubectl apply -f k8s/deployment.yaml --namespace=worker1'
-                sh 'kubectl rollout status deployment/website --namespace=worker1'
+                sh '''
+                    sed -i "s|image: kre1/website:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|" k8s/deployment.yaml
+                    kubectl apply -f k8s/deployment.yaml --namespace=worker1
+                    kubectl rollout status deployment/website --namespace=worker1
+                '''
             }
         }
     }
