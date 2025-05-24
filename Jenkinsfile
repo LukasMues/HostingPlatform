@@ -31,7 +31,7 @@ pipeline {
         stage('Ensure Namespace Exists') {
             steps {
                 sh '''
-                    if ! kubectl get namespace ${NAMESPACE} &> /dev/null; then
+                    if ! kubectl get namespace ${NAMESPACE} > /dev/null 2>&1; then
                         kubectl create namespace ${NAMESPACE}
                         echo "Created namespace ${NAMESPACE}"
                     else
@@ -40,7 +40,7 @@ pipeline {
                 '''
             }
         }
-
+        
         stage('Update Kubernetes Deployment') {
             steps {
                 sh '''
