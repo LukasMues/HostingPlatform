@@ -1,21 +1,21 @@
 apiVersion: networking.k8s.io/v1
-   kind: Ingress
-   metadata:
-     name: website-ingress
-     namespace: client1 # Ensure this is present
-     annotations:
-       # This annotation is for Nginx Ingress controller.
-       # If your website serves content from its root, rewrite-target: / is usually appropriate.
-       nginx.ingress.kubernetes.io/rewrite-target: /
-   spec:
-     rules:
-       - host: website.local # Hostname for accessing the service via Ingress
-         http:
-           paths:
-             - path: /       # Path on the host to route
-               pathType: Prefix # Matches any path starting with /
-               backend:
-                 service:
-                   name: website-service # Must match your ClusterIP Service name
-                   port:
-                     number: 80         # Must match the port on your ClusterIP Service
+kind: Ingress
+metadata:
+  name: website-ingress
+  namespace: client1 # Ensure this is present
+  annotations:
+    # This annotation is for Nginx Ingress controller.
+    # If your website serves content from its root, rewrite-target: / is usually appropriate.
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: website.local # Hostname for accessing the service via Ingress
+      http:
+        paths:
+          - path: /       # Path on the host to route
+            pathType: Prefix # Matches any path starting with /
+            backend:
+              service:
+                name: website-service # Must match your ClusterIP Service name
+                port:
+                  number: 80         # Must match the port on your ClusterIP Service
