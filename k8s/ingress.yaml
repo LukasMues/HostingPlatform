@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: website-ingress
-  namespace: client1 # Ensure this is present
+  # namespace: client1 # Removed to allow Jenkins to set it
   annotations:
     # This annotation is for Nginx Ingress controller.
     # If your website serves content from its root, rewrite-target: / is usually appropriate.
