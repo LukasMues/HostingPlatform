@@ -201,7 +201,7 @@ pipeline {
                                 // This implies a change to client-level k8s, .jenkins_config, or other non-app files.
                                 // In this case, re-deploy all apps for this client.
                                 echo "Client ${clientName}: Client folder was impacted by non-app-specific changes (e.g., k8s config, client config). Deploying all apps for this client."
-                                appsToDeployForThisClient.clear() // Clear any potentially added apps if logic was mixed
+                                appsToDeployForThisClient = [] // Reinitialize instead of clear
                                 appsToDeployForThisClient.addAll(appList)
                             } else if (appsToDeployForThisClient.isEmpty() && !appList.isEmpty()) {
                                 // This case should ideally not be hit if the client was flagged and had apps,
