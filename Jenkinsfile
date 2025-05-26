@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
-        K8S_NAMESPACE = 'client2' // Common namespace for both apps
+        K8S_NAMESPACE = 'client1' // Corrected to client1
 
         // App1 (Original Website) Configuration
         APP1_NAME = 'app1'
