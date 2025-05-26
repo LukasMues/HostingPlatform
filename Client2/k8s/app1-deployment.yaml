@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: C-2-app1-deployment
+  name: app1-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: C-2-app1
+      app: app1
   template:
     metadata:
       labels:
-        app: C-2-app1
+        app: app1
     spec:
       containers:
-        - name: C-2-app1-container
-          image: kre1/C-2-app1:PLACEHOLDER # Jenkins will replace this
+        - name: app1-container
+          image: kre1/app1:PLACEHOLDER # Jenkins will replace this
           imagePullPolicy: Always
           ports:
             - containerPort: 80 # Assuming App2 also runs on port 80
@@ -22,11 +22,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: C-2-app1-service
+  name: app1-service
 spec:
   type: NodePort
   selector:
-    app: C-2-app1
+    app: app1
   ports:
     - port: 80
       targetPort: 80 # Assuming App2 also targets port 80

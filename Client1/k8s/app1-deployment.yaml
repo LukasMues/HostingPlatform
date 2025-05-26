@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: website
+  name: app1-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: website
+      app: app1
   template:
     metadata:
       labels:
-        app: website
+        app: app1
     spec:
       containers:
-        - name: website
-          image: kre1/website:PLACEHOLDER
+        - name: app1-container
+          image: kre1/app1:PLACEHOLDER
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -22,11 +22,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: website-service
+  name: app1-service
 spec:
   type: NodePort
   selector:
-    app: website
+      app: app1
   ports:
     - port: 80
       targetPort: 80
