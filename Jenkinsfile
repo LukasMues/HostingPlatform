@@ -30,7 +30,11 @@ pipeline {
                 git url: 'https://github.com/LukasMues/HostingPlatform.git', branch: 'main'
                 script {
                     // Get the list of changed files
-                    def changedFiles = sh(script: "git diff --name-only ${env.GIT_PREVIOUS_COMMIT} ${env.GIT_COMMIT}", returnStdout: true).trim().split('\\n')
+                    def changedFilesOutput = sh(script: "git diff --name-only ${env.GIT_PREVIOUS_COMMIT} ${env.GIT_COMMIT}", returnStdout: true).trim()
+                    def changedFiles = []
+                    if (changedFilesOutput) { // Ensure output is not null or empty before splitting
+                        changedFiles = changedFilesOutput.split('\\n')
+                    }
                     env.CHANGED_FILES_LIST = changedFiles.join(',')
                     
                     echo "Changed files: ${env.CHANGED_FILES_LIST}"
@@ -46,7 +50,8 @@ pipeline {
                             env.DEPLOY_APP2 = "true"
                         }
                     }
-                    if (changedFiles.isEmpty()) { // If it's the first build or no specific commit range
+                    // Check if the array is empty by its length
+                    if (changedFiles.length == 0) { 
                         echo "No specific changed files detected (e.g., first build or manual run). Assuming changes for both apps for safety."
                         env.DEPLOY_APP1 = "true"
                         env.DEPLOY_APP2 = "true"
