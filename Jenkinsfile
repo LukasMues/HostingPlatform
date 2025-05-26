@@ -51,10 +51,6 @@ pipeline {
             }
         }
 
-         stage('Apply Ingress') { 
-           steps {
-               sh 'kubectl apply -f k8s/ingress.yaml --namespace=${NAMESPACE}'
-           }
-       }
+        
     }
 }
