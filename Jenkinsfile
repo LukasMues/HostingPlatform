@@ -91,6 +91,7 @@ pipeline {
 
                     env.CLIENTS_TO_PROCESS = clientsToProcessList.join(',')
                     echo "Client folders flagged for processing: ${env.CLIENTS_TO_PROCESS}"
+                    env.GLOBAL_CHANGED_FILES = changedFiles.join(',') // Store for later stages
                 }
             }
         }
@@ -104,6 +105,7 @@ pipeline {
                         return
                     }
                     def clients = env.CLIENTS_TO_PROCESS.split(',').collect{ it.trim() }.findAll{ !it.isEmpty() }
+                    def globalChangedFilesList = env.GLOBAL_CHANGED_FILES ? env.GLOBAL_CHANGED_FILES.split(',') : [] // Retrieve and split
                     
                     for (String clientName : clients) {
                         echo "=================================================================="
@@ -163,7 +165,7 @@ pipeline {
 
                         // Determine which of this client's apps need deployment based on `changedFiles`
                         def appsToDeployForThisClient = []
-                        boolean deployAllAppsForThisClient = changedFiles.length == 0 || env.CLIENTS_TO_PROCESS.split(',').contains(clientName) // If client folder changed or no specific changes
+                        boolean deployAllAppsForThisClient = globalChangedFilesList.length == 0 || env.CLIENTS_TO_PROCESS.split(',').contains(clientName) 
                         
                         if (deployAllAppsForThisClient) {
                              appsToDeployForThisClient.addAll(appList)
@@ -172,7 +174,7 @@ pipeline {
                             // However, it provides a finer-grained check if needed in the future.
                             for (String appName : appList) {
                                 String appSourceDirInRepo = "${clientAppsBaseDir}/${appName}/".replaceAll("./","")
-                                for (String file : changedFiles) {
+                                for (String file : globalChangedFilesList) {
                                     if (file.startsWith(appSourceDirInRepo)) {
                                         if (!appsToDeployForThisClient.contains(appName)) {
                                             appsToDeployForThisClient.add(appName)
