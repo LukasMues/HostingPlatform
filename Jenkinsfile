@@ -5,7 +5,7 @@ pipeline {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // your Jenkins credential ID
         IMAGE_NAME = 'kre1/website'
         IMAGE_TAG = "${new Date().format('yyyyMMdd-HHmm')}"
-        NAMESPACE = 'client1'
+        NAMESPACE = 'client2'
     }
 
     stages {
