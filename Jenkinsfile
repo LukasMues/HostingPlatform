@@ -76,7 +76,7 @@ pipeline {
                         for (String file : changedFiles) {
                             if (file.equals("Jenkinsfile")) {
                                 echo "Detected changes in the root Jenkinsfile. Flagging all clients for processing."
-                                clientsToProcessList.clear()
+                                clientsToProcessList = [] // Reinitialize the list instead of clearing
                                 clientsToProcessList.addAll(clientList)
                                 break
                             }
