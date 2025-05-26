@@ -143,9 +143,9 @@ pipeline {
                         // Discover and process apps for this client
                         def appList = []
                         try {
-                            def findAppsCmd = "ls -d ${clientAppsBaseDir}/*/ | cut -f2 -d'/' || true"
+                            def findAppsCmd = "find ${clientAppsBaseDir} -maxdepth 1 -mindepth 1 -type d -printf '%f\\n' || true" // More robust way to get just subdir names
                             if (!isUnix()) {
-                                findAppsCmd = "cmd /c dir /b /ad ${clientAppsBaseDir} || true" // Basic Windows version
+                                findAppsCmd = "cmd /c dir /b /ad ${clientAppsBaseDir} || true" // Basic Windows version, should be okay
                             }
                             def discoveredAppNames = sh(script: findAppsCmd, returnStdout: true).trim().split('[\r\n]+')
                             for(String appNameEntry : discoveredAppNames) {
