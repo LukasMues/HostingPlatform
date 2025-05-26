@@ -224,9 +224,8 @@ pipeline {
                                 sh "docker build -t ${fullImageName} -f ${appDockerfile} ${appSourceDir}"
 
                                 echo "Client ${clientName} - Pushing ${appName}: ${fullImageName}"
-                                withCredentials([string(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, variable: 'DOCKERHUB_PSW')]) {
-                                    // Assuming DOCKER_REGISTRY_USER from config is the login username
-                                    sh "echo $DOCKERHUB_PSW | docker login -u ${dockerRegistryUser} --password-stdin"
+                                withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_LOGIN_USER', passwordVariable: 'DOCKER_LOGIN_PASS')]) {
+                                    sh "echo $DOCKER_LOGIN_PASS | docker login -u $DOCKER_LOGIN_USER --password-stdin"
                                 }
                                 sh "docker push ${fullImageName}"
 
