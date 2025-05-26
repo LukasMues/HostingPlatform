@@ -60,7 +60,7 @@ pipeline {
                         }
                     }
 
-                    if (changedFiles.isEmpty() || jenkinsfileChanged) {
+                    if (changedFiles.length == 0 || jenkinsfileChanged) {
                         if (jenkinsfileChanged) {
                             echo "Detected changes in the root Jenkinsfile. Flagging all clients for processing."
                         } else {
