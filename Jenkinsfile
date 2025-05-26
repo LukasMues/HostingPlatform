@@ -8,8 +8,8 @@ pipeline {
         // App1 (Original Website) Configuration
         APP1_NAME = 'app1'
         APP1_IMAGE_REPO = 'kre1/website' // Your original image name
-        APP1_SOURCE_DIR = 'Website/App1'
-        APP1_DOCKERFILE = 'Website/App1/Dockerfile'
+        APP1_SOURCE_DIR = 'website/App1'
+        APP1_DOCKERFILE = 'website/App1/Dockerfile'
         APP1_K8S_DEPLOYMENT_FILE = 'k8s/deployment.yaml'
         APP1_K8S_INGRESS_FILE = 'k8s/ingress.yaml'
         APP1_K8S_RESOURCE_NAME = 'website' // Original K8s deployment name
@@ -17,8 +17,8 @@ pipeline {
         // App2 Configuration
         APP2_NAME = 'app2'
         APP2_IMAGE_REPO = 'kre1/app2'
-        APP2_SOURCE_DIR = 'Website/App2'
-        APP2_DOCKERFILE = 'Website/App2/Dockerfile'
+        APP2_SOURCE_DIR = 'website/App2'
+        APP2_DOCKERFILE = 'website/App2/Dockerfile'
         APP2_K8S_DEPLOYMENT_FILE = 'k8s/app2-deployment.yaml'
         APP2_K8S_INGRESS_FILE = 'k8s/app2-ingress.yaml'
         APP2_K8S_RESOURCE_NAME = 'app2-deployment' // K8s deployment name for App2
