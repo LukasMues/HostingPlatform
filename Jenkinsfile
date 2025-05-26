@@ -52,45 +52,49 @@ pipeline {
                     echo "Discovered potential client folders: ${clientList.join(', ')}"
 
                     def clientsToProcessList = []
-                    boolean deployAllClients = changedFiles.length == 0 // Deploy all if no specific changes (e.g., first run)
-
-                    if (deployAllClients && !clientList.isEmpty()) {
-                        echo "No specific changed files detected at repo level. Will process all discovered clients."
-                        clientsToProcessList.addAll(clientList)
-                    } else {
-                        for (String clientName : clientList) {
-                            String clientDirInRepo = "${env.CLIENT_BASE_DIR}/${clientName}/".replaceAll("./", "") // Path relative to repo root
-                            for (String file : changedFiles) {
-                                if (file.startsWith(clientDirInRepo)) {
-                                    if (!clientsToProcessList.contains(clientName)) {
-                                        clientsToProcessList.add(clientName)
-                                    }
-                                    break 
-                                }
-                            }
+                    boolean jenkinsfileChanged = false
+                    for (String file : changedFiles) {
+                        if (file.equals("Jenkinsfile")) {
+                            jenkinsfileChanged = true
+                            break
                         }
                     }
-                    
-                    // Fallback: If Jenkinsfile itself changed, process all clients
-                    if (!deployAllClients && clientsToProcessList.isEmpty() && !clientList.isEmpty()) {
-                        for (String file : changedFiles) {
-                            if (file.equals("Jenkinsfile")) {
-                                echo "Detected changes in the root Jenkinsfile. Flagging all clients for processing."
-                                clientsToProcessList = [] // Reinitialize the list instead of clearing
-                                clientsToProcessList.addAll(clientList)
-                                break
+
+                    if (changedFiles.isEmpty() || jenkinsfileChanged) {
+                        if (jenkinsfileChanged) {
+                            echo "Detected changes in the root Jenkinsfile. Flagging all clients for processing."
+                        } else {
+                            echo "No specific changed files detected at repo level (or first run). Flagging all discovered clients for processing."
+                        }
+                        clientsToProcessList.addAll(clientList)
+                    } else {
+                        echo "Specific changed files detected. Determining affected clients..."
+                        for (String clientName : clientList) {
+                            String clientDirInRepo = "${env.CLIENT_BASE_DIR}/${clientName}/".replaceAll("./", "") // Path relative to repo root
+                            boolean clientAffected = false
+                            for (String file : changedFiles) {
+                                if (file.startsWith(clientDirInRepo)) {
+                                    clientAffected = true
+                                    break
+                                }
+                            }
+                            if (clientAffected) {
+                                if (!clientsToProcessList.contains(clientName)) {
+                                    clientsToProcessList.add(clientName)
+                                    echo "Client ${clientName} is affected by changes."
+                                }
                             }
                         }
                     }
 
                     if (clientsToProcessList.isEmpty() && !clientList.isEmpty()) {
-                        echo "No changes detected impacting any specific client folder or the root Jenkinsfile."
+                        echo "No changes detected impacting any specific client folder or the root Jenkinsfile. No clients will be processed."
                     } else if (clientList.isEmpty()){
                         echo "No client folders with ${env.CONFIG_FILE_NAME} found in ${env.CLIENT_BASE_DIR}/"
                     }
 
-                    env.CLIENTS_TO_PROCESS = clientsToProcessList.join(',')
-                    echo "Client folders flagged for processing: ${env.CLIENTS_TO_PROCESS}"
+                    env.CLIENTS_TO_PROCESS = clientsToProcessList.unique().join(',') // Ensure unique before joining
+                    echo "Client folders flagged for processing: ${env.CLIENTS_TO_PROCESS ?: 'None'}"
                     env.GLOBAL_CHANGED_FILES = changedFiles.join(',') // Store for later stages
                 }
             }
@@ -163,15 +167,23 @@ pipeline {
                             continue // Move to next client if no apps
                         }
 
-                        // Determine which of this client's apps need deployment based on `changedFiles`
+                        // Determine which of this client's apps need deployment based on `globalChangedFilesList`
                         def appsToDeployForThisClient = []
-                        boolean deployAllAppsForThisClient = globalChangedFilesList.length == 0 || env.CLIENTS_TO_PROCESS.split(',').contains(clientName) 
-                        
-                        if (deployAllAppsForThisClient) {
-                             appsToDeployForThisClient.addAll(appList)
-                        } else {
-                            // This specific logic might be redundant if CLIENTS_TO_PROCESS already correctly identified the client folder change
-                            // However, it provides a finer-grained check if needed in the future.
+                        // A client is processed if its folder was in CLIENTS_TO_PROCESS.
+                        // Now, determine if ALL apps for this client deploy, or only changed ones.
+
+                        boolean deployAllAppsForThisClientBecauseClientFolderWasFlagged = env.CLIENTS_TO_PROCESS.split(',').contains(clientName)
+                        boolean jenkinsfileOrNoSpecificChangesTriggeredAll = env.GLOBAL_CHANGED_FILES.isEmpty() || env.GLOBAL_CHANGED_FILES.split(',').contains("Jenkinsfile")
+
+
+                        if (jenkinsfileOrNoSpecificChangesTriggeredAll && deployAllAppsForThisClientBecauseClientFolderWasFlagged) {
+                            echo "Client ${clientName}: Jenkinsfile changed or no specific file changes; deploying all apps for this flagged client."
+                            appsToDeployForThisClient.addAll(appList)
+                        } else if (deployAllAppsForThisClientBecauseClientFolderWasFlagged) {
+                            // Client folder was flagged. Check for specific app changes within it.
+                            // If specific app changes, deploy only those.
+                            // If client folder was flagged due to a non-app change (e.g. k8s manifest at client level, or .jenkins_config), deploy all its apps.
+                            boolean specificAppChangedInThisClient = false
                             for (String appName : appList) {
                                 String appSourceDirInRepo = "${clientAppsBaseDir}/${appName}/".replaceAll("./","")
                                 for (String file : globalChangedFilesList) {
@@ -179,16 +191,27 @@ pipeline {
                                         if (!appsToDeployForThisClient.contains(appName)) {
                                             appsToDeployForThisClient.add(appName)
                                         }
-                                        break
+                                        specificAppChangedInThisClient = true
+                                        // Do not break here, collect all changed apps for this client
                                     }
                                 }
                             }
+                            if (!specificAppChangedInThisClient && !appList.isEmpty()) {
+                                // Client folder was impacted, but no specific *app source* files.
+                                // This implies a change to client-level k8s, .jenkins_config, or other non-app files.
+                                // In this case, re-deploy all apps for this client.
+                                echo "Client ${clientName}: Client folder was impacted by non-app-specific changes (e.g., k8s config, client config). Deploying all apps for this client."
+                                appsToDeployForThisClient.clear() // Clear any potentially added apps if logic was mixed
+                                appsToDeployForThisClient.addAll(appList)
+                            } else if (appsToDeployForThisClient.isEmpty() && !appList.isEmpty()) {
+                                // This case should ideally not be hit if the client was flagged and had apps,
+                                // unless only non-relevant files within client dir changed.
+                                // To be safe, if client was flagged but no apps selected, deploy all.
+                                echo "Client ${clientName}: Client folder was impacted, but no specific app changes identified. Deploying all apps for this client as a precaution."
+                                appsToDeployForThisClient.addAll(appList)
+                            }
                         }
-                        // If client folder was flagged, but no specific app changes, deploy all its apps
-                        if (env.CLIENTS_TO_PROCESS.split(',').contains(clientName) && appsToDeployForThisClient.isEmpty() && !appList.isEmpty()) {
-                            echo "Client ${clientName} folder was marked for processing (e.g. config/k8s change). Deploying all its apps."
-                            appsToDeployForThisClient.addAll(appList)
-                        }
+
 
                         if (appsToDeployForThisClient.isEmpty()) {
                             echo "Client ${clientName} - No specific app changes detected that require deployment."
